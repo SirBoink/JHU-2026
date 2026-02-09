@@ -4,19 +4,19 @@ A low-cost tuberculosis screening prototype using ESP32 and MOS gas sensors with
 
 > **Note:** Since real TB samples are unavailable, we use surrogates:
 > - **Healthy:** Normal human breath
-> - **TB:** Breath + Hand Sanitizer (alcohol) or Marker fumes (VOCs)
-> - **Interference:** Breath + Perfume/Coffee
+> - **TB:** Breath + Whiteboard Marker (Ketones) + Hand Sanitizer (alcohol) + Permanent marker fumes (Benzene + aromatic compounds)
+> - **Interference:** Breath + Mint (cyclic alcohol)
 
 ---
 
 ## Hardware Requirements
 
-| Component | Quantity | Notes |
-|-----------|----------|-------|
-| ESP32 DevKit V1 | 1 | Any ESP32 with ADC1 pins |
-| MQ-3 Sensor | 1 | Alcohol detection |
-| MQ-135 Sensor | 1 | Air quality / VOCs |
-| MQ-2 Sensor | 1 | Combustible gases |
+| Component | Technology | Functional Role |
+|-----------|------------|-----------------|
+| ESP32 DevKit V1 | 32-bit Dual-Core MCU | Central processing unit for multi-channel signal acquisition and real-time inference |
+| MQ-3 Sensor | SnO2 Chemiresistor | Detection of methylated metabolites and metabolic alcohol biomarkers |
+| MQ-135 Sensor | SnO2 Chemiresistor | Sensitive to aromatic hydrocarbons, benzene derivatives, and ammonia |
+| MQ-2 Sensor | SnO2 Chemiresistor | Broad-spectrum detection of combustible VOCs and smoke |
 
 ### Wiring
 
@@ -24,17 +24,15 @@ A low-cost tuberculosis screening prototype using ESP32 and MOS gas sensors with
 ESP32 DevKit V1
 ┌─────────────────────────┐
 │                         │
-│  GPIO 34 ←──── MQ-3 AO  │
-│  GPIO 35 ←──── MQ-135 AO│
-│  GPIO 32 ←──── MQ-2 AO  │
+│  GPIO 25 ←──── MQ-3 AO  │
+│  GPIO 26 ←──── MQ-135 AO│
+│  GPIO 27 ←──── MQ-2 AO  │
 │                         │
 │  3.3V ─────→ Sensor VCC │
 │  GND ──────→ Sensor GND │
 │                         │
 └─────────────────────────┘
 ```
-
-> Use only ADC1 pins (GPIO 32-39). ADC2 conflicts with WiFi.
 
 ---
 
@@ -74,7 +72,7 @@ tb_breath_analyzer/
 
 ### 1. Python Environment
 
-Requires **Python 3.10–3.12**.
+Requires **Python 3.10 or higher**.
 
 ```powershell
 cd tb_breath_analyzer
@@ -124,13 +122,15 @@ Press `Ctrl+C` to stop collection. Aim for 100+ samples per class.
 
 ## Training
 
-### Standard Training (baseline-normalized)
+### Standard Training
 
 ```powershell
 python train_model.py
 ```
 
-### Augmented Training (recommended for small datasets)
+### Augmented Training
+
+Recommended for small datasets.
 
 ```powershell
 python augment.py          # Generate synthetic samples via KDE
@@ -154,14 +154,14 @@ Features:
 
 ## Adding a New Sensor
 
-1. **Hardware:** Connect to an ADC1 pin (e.g., GPIO 33)
+1. **Hardware:** Connect sensor analog output to an available GPIO pin
 
 2. **Firmware:** Add to `sensor_reader.ino`:
    ```cpp
    const SensorConfig SENSORS[] = {
-       {"MQ3",   34},
-       {"MQ135", 35},
-       {"MQ2",   32},
+       {"MQ3",   25},
+       {"MQ135", 26},
+       {"MQ2",   27},
        {"MQ7",   33}  // New sensor
    };
    ```
@@ -179,11 +179,11 @@ Features:
 
 | Issue | Solution |
 |-------|----------|
-| Serial port not found | Check Device Manager for COM port |
-| Permission denied | Close Arduino Serial Monitor |
+| Serial port not found | Check Device Manager for correct COM port |
+| Permission denied | Close Arduino Serial Monitor or other serial connections |
 | Model not found | Run training script first |
 | Low accuracy | Collect more samples, ensure clean baseline |
-| Sensors reading 0 | Check wiring, warm up sensors (1-2 min) |
+| Sensors reading 0 | Check wiring, allow sensors to warm up (1-2 min) |
 
 ---
 
