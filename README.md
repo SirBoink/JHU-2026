@@ -1,4 +1,4 @@
-# TB Breath Analyzer
+# Breath Analyzer
 
 A low-cost tuberculosis screening prototype using ESP32 and MOS gas sensors with machine learning classification.
 
@@ -190,3 +190,4 @@ Features:
 ## License
 
 MIT License
+
